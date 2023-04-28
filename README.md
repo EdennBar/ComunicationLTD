@@ -1,35 +1,34 @@
 # ComunicationLTD
 
 To set up the virtual environment:
-C:\Users\Eden\Desktop\securityProject>
-1) python -m venv env
-2) env\Scripts\activate
+C:\Users\Eden\Desktop\securityProject>  
+1) python -m venv env  
+2) env\Scripts\activate  
 
-To install packages in requirements.txt: 
-1) pip install -r requirements.txt 
-2) OR do it manually :)
-
-
-SQL:
-1) docker-compose up -d
-
-Commands for shell: 
-2) docker exec -it 45c63302dbbe bash -l
-3) mysql -h 127.0.0.1 -u root -p communication
-4)password: Qazqazwsx1
+To install packages in requirements.txt:   
+1) pip install -r requirements.txt   
+2) OR do it manually :)  
 
 
-use communication;
-SHOW TABLES;
-SELECT * FROM users_users;
+SQL:  
+1) docker-compose up -d  
 
-If the 3306 port is already allocated by Docker Compose, open an administrator shell and run the following commands:
-1)netstat -ano | findstr :3306
-2) taskkill /PID 3306 /F
+Commands for shell:   
+2) docker exec -it 45c63302dbbe bash -l  
+3) mysql -h 127.0.0.1 -u root -p communication  
+4) password: Qazqazwsx1  
 
-To run the server:
-1) (env) C:\Users\Eden\Desktop\securityProject\securecomunication> python manage.py runserver
+use communication;  
+SHOW TABLES;  
+SELECT * FROM users_users;  
 
-DJANGO admin panel:
-1) username: admin@gmail.com
-2) password: 5Q6O0Lot*8Da
+If the 3306 port is already allocated by Docker Compose, open an administrator shell and run the following commands:  
+1) netstat -ano | findstr :3306  
+2) taskkill /PID 3306 /F  
+
+To run the server:  
+1) (env) C:\Users\Eden\Desktop\securityProject\securecomunication> python manage.py runserver  
+
+DJANGO admin panel:  
+1) username: admin@gmail.com  
+2) password: 5Q6O0Lot*8Da  
