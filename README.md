@@ -1,14 +1,13 @@
 # ComunicationLTD
 
+To set up the virtual environment:
 C:\Users\Eden\Desktop\securityProject>
 python -m venv env
 env\Scripts\activate
 
-install packages in requirements.txt:
- pip install -r requirements.txt
-
+To install packages in requirements.txt: 
+pip install -r requirements.txt
 OR do it manually :)
-
 
 SQL:
 docker-compose up -d
@@ -22,15 +21,12 @@ use communication;
 SHOW TABLES;
 SELECT * FROM users_users;
 
-if the 3306 port is already allocated docker compose:
-OPEN adminstrator shell:
+If the 3306 port is already allocated by Docker Compose, open an administrator shell and run the following commands:
 netstat -ano | findstr :3306
 taskkill /PID 3306 /F
 
-
-(env) C:\Users\Eden\Desktop\securityProject\securecomunication>
 To run the server:
-python manage.py runserver
+(env) C:\Users\Eden\Desktop\securityProject\securecomunication> python manage.py runserver
 
 DJANGO admin panel:
 admin@gmail.com
