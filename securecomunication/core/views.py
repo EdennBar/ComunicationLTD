@@ -2,19 +2,92 @@ import hashlib
 import secrets
 import os
 import MySQLdb
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .forms import RegisterForm
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.contrib import messages
 
 @csrf_exempt
 def index(request):
     return render(request, 'core/index.html')
+
+
 def login(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        try:
+            MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
+            MYSQL_USER = os.environ.get("MYSQL_USER", "root")
+            MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
+            MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydb")
+            MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
+
+            # Open a connection to the MySQL database
+            conn = MySQLdb.connect(
+                host=MYSQL_HOST,
+                user=MYSQL_USER,
+                password=MYSQL_PASSWORD,
+                database=MYSQL_DATABASE,
+                port=int(MYSQL_PORT)
+            )
+
+            # Create a new cursor object to execute SQL statements
+            cursor = conn.cursor()
+
+            # Check if the user exists
+            cursor.execute("SELECT * FROM communication.users_users WHERE email=%s", (email,))
+            user = cursor.fetchone()
+            print("please print the user " + str(user))
+
+            # If the user exists, check the password
+            if user:
+                salt = str(user[10])
+                print(f"password: {password}")
+                print(f"salt: {salt}")
+                print("Reached password comparison block")
+                hashed_password = hashlib.pbkdf2_hmac(
+                    'sha256',
+                    bytes(password, 'utf-8'),
+                    bytes(salt, 'utf-8'),
+                    100000
+                ).hex()
+                print(f"hashed password: {hashed_password}")
+                print(f"stored password: {str(user[6])}")
+                if hashed_password == user[6]:
+                    # Close the database connection and cursor
+                    cursor.close()
+                    conn.close()
+                    messages.success(request, 'Login successful!')
+                    return redirect('login') # we can redirect to the home page after login,we see the message login... 
+                    #return HttpResponse('Login successful!')// we have the option to get the respone 200
+                else:
+                    # Close the database connection and cursor
+                    cursor.close()
+                    conn.close()
+                    messages.error(request, 'Incorrect password.')
+                    #return redirect('login')
+                    return HttpResponse('Incorrect password.', status=400)
+            else:
+                # Close the database connection and cursor
+                cursor.close()
+                conn.close()
+                messages.error(request, 'User does not exist.')
+                #return redirect('login') 
+                return HttpResponse('User does not exist.', status=400)
+
+        except Exception as error:
+            print(error)
+            return HttpResponseBadRequest("Error connecting to database")
+
     return render(request, 'core/login.html')
+
+
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -66,8 +139,8 @@ def register(request):
                 now = timezone.now()
 
                 # Execute the SQL statement with the parameters
-                cursor.execute("INSERT INTO communication.users_users (first_name, last_name, email, password, is_superuser, is_staff, is_active, date_joined) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                (first_name, last_name, email, hashed_password, False, False, True, now))
+                cursor.execute("INSERT INTO communication.users_users (first_name, last_name, email,password,salt ,is_superuser, is_staff, is_active, date_joined) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s)",
+                (first_name, last_name, email, hashed_password,salt ,False, False, True, now))
 
 
 
