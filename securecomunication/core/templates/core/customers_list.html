@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+  <h1>Customer List</h1>
+  <table  border="1px solid black"  width="300" cellspacing="5" cellpadding="5"  border="1px solid black"
+   border-collapse="collapse"  >
+          <tr>
+              <th >  Customer Name </th>
+              <th  >  Customer Address </th>
+              <th  >  Customer Phone </th>
+         </tr>
+
+
+    {% for customer in customers %}
+     <tr >
+    <td >{{ customer.0 }}</td>
+    <td  > {{ customer.1 }} </td>
+    <td  > {{ customer.2 }} </td>
+     </tr>
+    {% endfor %}
+ </table>
+{% endblock %}

@@ -6,7 +6,7 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .forms import RegisterForm
+from .forms import RegisterForm,CustomerForm
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.contrib import messages
@@ -167,6 +167,7 @@ def register(request):
     return render(request, 'core/register.html', {'form': form})
 
 
+
 def password_change(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -257,3 +258,86 @@ def password_change(request):
             return HttpResponseBadRequest("Error connecting to database")
 
     return render(request, 'core/password_change.html')
+
+
+def add_customer(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data.get('name')
+            address = form.cleaned_data.get('address')
+            phone = form.cleaned_data.get('phone')
+
+
+            try:
+                MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
+                MYSQL_USER = os.environ.get("MYSQL_USER", "root")
+                MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
+                MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydb")
+                MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
+                print(MYSQL_USER)
+
+                # Open a connection to the MySQL database
+                conn = MySQLdb.connect(
+                    host=MYSQL_HOST,
+                    user=MYSQL_USER,
+                    password=MYSQL_PASSWORD,
+                    database=MYSQL_DATABASE,
+                    port=int(MYSQL_PORT)
+                )
+
+                # Create a new cursor object to execute SQL statements
+                cursor = conn.cursor()
+                # Execute the SQL statement with the parameters
+                cursor.execute("INSERT INTO communication.customers_customers (name, address, phone) VALUES (%s,%s, %s)",
+                (name,address,phone))
+
+                # Commit the changes to the database
+                conn.commit()
+
+                # Close the database connection and cursor
+                cursor.close()
+                conn.close()
+
+
+                return HttpResponse("Success!")
+            except Exception as error:
+                print(error)
+                return HttpResponseBadRequest("Error connecting to database")
+        else:
+            print(form.errors)
+            return HttpResponseBadRequest("Invalid Form Data")
+    else:
+        form = CustomerForm()
+    return render(request, 'core/customers.html', {'form': form})
+
+def customers_list(request):
+    if request.method == 'GET':
+        try:
+                MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
+                MYSQL_USER = os.environ.get("MYSQL_USER", "root")
+                MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
+                MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydb")
+                MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
+                print(MYSQL_USER)
+
+                # Open a connection to the MySQL database
+                conn = MySQLdb.connect(
+                    host=MYSQL_HOST,
+                    user=MYSQL_USER,
+                    password=MYSQL_PASSWORD,
+                    database=MYSQL_DATABASE,
+                    port=int(MYSQL_PORT)
+                )
+
+                # Create a new cursor object to execute SQL statements
+                cursor = conn.cursor()
+                # Execute the SQL statement with the parameters
+                cursor.execute("SELECT * FROM communication.customers_customers;")
+                customers = cursor.fetchall()
+                cursor.close()
+                conn.close()
+                return render(request, 'core/customers_list.html', {'customers': customers})
+        except Exception as error:
+                print(error)
+                return HttpResponseBadRequest("Error connecting to database")
