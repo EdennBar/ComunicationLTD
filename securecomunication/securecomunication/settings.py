@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'users',
      'django_password_validators',
     'django_password_validators.password_history',
+    'sslserver',
+    'django_rest_passwordreset'
 ]
 AUTH_USER_MODEL = 'users.Users'
 
@@ -52,7 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'securecomunication.urls'
@@ -148,3 +150,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'testmail@gmail.com'
+EMAIL_HOST_PASSWORD = 'test_app_password'  # You need an app password to use gmail SMTP.
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'Secure Communication LTD Team <noreply@securecommltd.com>'
+

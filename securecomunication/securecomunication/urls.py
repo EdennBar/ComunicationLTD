@@ -15,15 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from core.views import index, register, login,password_change,add_customer,customers_list
+from django.urls import path, include
+from core.views import index, register, login, password_change, add_customer, customers_list
+
 urlpatterns = [
     path('', index, name='index'),
     path('register/', register, name='register'),
     path('login/', login, name='login'),
     path('admin/', admin.site.urls),
-    path('password_change/',password_change,name='password_change'),
-    path('customers/',add_customer,name='customers'),
-    path('customers_list',customers_list,name='customers_list')
-    
+    path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
+
+    path('password_change/', password_change, name='password_change'),
+    path('customers/', add_customer, name='customers'),
+    path('customers_list', customers_list, name='customers_list')
+
 ]
