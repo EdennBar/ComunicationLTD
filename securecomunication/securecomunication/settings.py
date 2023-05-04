@@ -12,9 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-BLACKLIST_PATH = BASE_DIR /'securecomunication'/'blacklist_passwords.txt'
+BLACKLIST_PATH = BASE_DIR / 'securecomunication' / 'blacklist_passwords.txt'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -39,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'users',
-     'django_password_validators',
+    'django_password_validators',
     'django_password_validators.password_history',
     'sslserver',
     'django_rest_passwordreset'
@@ -77,21 +78,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'securecomunication.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'mysql': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('MYSQL_DATABASE', ''),
         'USER': os.environ.get('MYSQL_USER', ''),
         'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
         'HOST': os.environ.get('MYSQL_HOST', '0.0.0.0'),
         'PORT': os.environ.get('MYSQL_PORT', '3306'),
+    },
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.environ.get('SQLITE_DATABASE', 'main'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -107,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django_password_validators.password_character_requirements.password_validation.PasswordCharacterValidator',
         'OPTIONS': {
             'min_length_digit': 1,
-            #'min_length_alpha': 2,
+            # 'min_length_alpha': 2,
             'min_length_special': 1,
             'min_length_lower': 1,
             'min_length_upper': 1,
@@ -128,7 +131,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -139,7 +141,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -155,7 +156,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'testmail@gmail.com'
-EMAIL_HOST_PASSWORD = 'test_app_password'  # You need an app password to use gmail SMTP.
+EMAIL_HOST_PASSWORD = 'TEST_APP_PASSWORD'  # You need an app password to use gmail SMTP.
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'Secure Communication LTD Team <noreply@securecommltd.com>'
-
