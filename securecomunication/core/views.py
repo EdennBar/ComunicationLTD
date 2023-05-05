@@ -1,18 +1,29 @@
 import hashlib
-import secrets
 import os
+import secrets
+from sqlite3 import connect as sqlite_connect
+
 import MySQLdb
-from django.shortcuts import render, redirect
-from django.http import HttpResponseBadRequest, HttpResponse
+from django.contrib import messages
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .forms import RegisterForm, CustomerForm
-from django.views.decorators.csrf import csrf_exempt
+from django.db import connection
+from django.http import HttpResponseBadRequest, HttpResponse
+from django.shortcuts import render, redirect
 from django.utils import timezone
-from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+
+from .forms import RegisterForm, CustomerForm
 
 
+def mysql_connect() -> MySQLdb.Connection:
+    hostname = os.environ.get("MYSQL_HOST", "localhost")
+    username = os.environ.get("MYSQL_USER", "root")
+    password = os.environ.get("MYSQL_PASSWORD", "")
+    database = os.environ.get("MYSQL_DATABASE", "mydb")
+    port = os.environ.get("MYSQL_PORT", "3306")
 
+    return MySQLdb.connect(hostname, username, password, database, int(port))
 
 
 @csrf_exempt
@@ -26,23 +37,15 @@ def login(request):
         password = request.POST.get('password')
 
         try:
-            MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
-            MYSQL_USER = os.environ.get("MYSQL_USER", "root")
-            MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
-            MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydb")
-            MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
+            if connection.vendor == 'sqlite':
+                db_connection = sqlite_connect(database="main")
+            elif connection.vendor == 'mysql':
+                db_connection = mysql_connect()
 
             # Open a connection to the MySQL database
-            conn = MySQLdb.connect(
-                host=MYSQL_HOST,
-                user=MYSQL_USER,
-                password=MYSQL_PASSWORD,
-                database=MYSQL_DATABASE,
-                port=int(MYSQL_PORT)
-            )
 
             # Create a new cursor object to execute SQL statements
-            cursor = conn.cursor()
+            cursor = db_connection.cursor()
 
             # Check if the user exists
             cursor.execute("SELECT * FROM communication.users_users WHERE email=%s", (email,))
@@ -66,7 +69,7 @@ def login(request):
                 if hashed_password == user[6]:
                     # Close the database connection and cursor
                     cursor.close()
-                    conn.close()
+                    db_connection.close()
                     messages.success(request, 'Login successful!')
                     return redirect(
                         'login')  # we can redirect to the home page after login,we see the message login...
@@ -74,14 +77,14 @@ def login(request):
                 else:
                     # Close the database connection and cursor
                     cursor.close()
-                    conn.close()
+                    db_connection.close()
                     messages.error(request, 'Incorrect password.')
                     # return redirect('login')
                     return HttpResponse('Incorrect password.', status=400)
             else:
                 # Close the database connection and cursor
                 cursor.close()
-                conn.close()
+                db_connection.close()
                 messages.error(request, 'User does not exist.')
                 # return redirect('login')
                 return HttpResponse('User does not exist.', status=400)
@@ -97,11 +100,9 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            first_name = form.cleaned_data.get('first_name')
-            last_name = form.cleaned_data.get('last_name')
-            email = form.cleaned_data.get('email')
+            form.save()
+            username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password1')
-
             # Validate the password
             try:
                 validate_password(password)
@@ -110,22 +111,9 @@ def register(request):
                 return HttpResponseBadRequest("Invalid Password")
 
             try:
-                MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
-                MYSQL_USER = os.environ.get("MYSQL_USER", "root")
-                MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
-                MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "mydb")
-                MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
-                print(MYSQL_USER)
 
                 # Open a connection to the MySQL database
-                conn = MySQLdb.connect(
-                    host=MYSQL_HOST,
-                    user=MYSQL_USER,
-                    password=MYSQL_PASSWORD,
-                    database=MYSQL_DATABASE,
-                    port=int(MYSQL_PORT)
-                )
-
+                conn = mysql_connect() if connection.vendor == 'mysql' else sqlite_connect("db.sqlite3")
                 # Create a new cursor object to execute SQL statements
                 cursor = conn.cursor()
 
@@ -142,10 +130,14 @@ def register(request):
 
                 # Get the current time
                 now = timezone.now()
-
+                first_name = form.cleaned_data.get('first_name')
+                last_name = form.cleaned_data.get('last_name')
+                email = form.cleaned_data.get('email')
                 # Execute the SQL statement with the parameters
+                query = "INSERT INTO communication.users_users (first_name, last_name, email,password,salt ,is_superuser, is_staff, is_active, date_joined) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s)" if connection.vendor == 'mysql' else "INSERT INTO users_users (first_name, last_name, email,password,salt ,is_superuser, is_staff, is_active, date_joined) VALUES (? , ?, ?, ?, ?, ?, ?, ?, ?)"
+
                 cursor.execute(
-                    "INSERT INTO communication.users_users (first_name, last_name, email,password,salt ,is_superuser, is_staff, is_active, date_joined) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s)",
+                    query,
                     (first_name, last_name, email, hashed_password, salt, False, False, True, now))
 
                 # Commit the changes to the database
@@ -158,7 +150,7 @@ def register(request):
                 return HttpResponse("Success!")
             except Exception as error:
                 print(error)
-                return HttpResponseBadRequest("Error connecting to database")
+                return HttpResponseBadRequest(f"Error connecting to database: {str(error)}")
         else:
             print(form.errors)
             return HttpResponseBadRequest("Invalid Form Data")
