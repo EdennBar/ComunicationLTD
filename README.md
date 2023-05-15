@@ -26,9 +26,10 @@ If the 3306 port is already allocated by Docker Compose, open an administrator s
 1) netstat -ano | findstr :3306  
 2) taskkill /PID 3306 /F  
 
-To run the server:  
-1) (env) C:\Users\Eden\Desktop\securityProject\securecomunication> python manage.py runserver  
-
+To run the server with tls:  
+```python 
+python manage.py runsslserver --certificate .\RootCA.pem --key .\RootCA.key
+```
 DJANGO admin panel:  
 1) username: admin@gmail.com  
 2) password: 5Q6O0Lot*8Da  
